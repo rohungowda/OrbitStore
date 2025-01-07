@@ -11,6 +11,19 @@ using std::endl;
 
 boost::asio::io_context io_context;
 
+    struct Header{
+        uint8_t type;
+        uint8_t chunkID;
+        uint8_t totalChunks;
+        uint16_t pageID;
+        uint16_t totalBytes;
+
+        Header(uint8_t type_, uint8_t chunkID_, uint16_t pageID_, uint8_t totalChunks_, uint8_t totalBytes_) 
+        : type(type_), chunkID(chunkID_), pageID(pageID_), totalChunks(totalChunks_), totalBytes(totalBytes_) {}
+
+
+    };
+
 // argv is a pointer to a bunvh of pointers(arrays)
 void startup_client(std::string host){
  try
@@ -31,7 +44,9 @@ void startup_client(std::string host){
         // automatically connects to endpoints with IPv4 and IPv6 endpoints
         boost::asio::connect(socket,endpoints);
 
-        std::vector<char> buffer = {'H','e','l','l','o','W','o','r','l','d','\n'};
+        std::vector<Header> buffer = {Header(1,2,3,4,5), Header(5,4,3,2,1)};
+
+
         cout << "Sending Data" << endl;
         boost::asio::write(socket,boost::asio::buffer(buffer));
         cout << "Finished Writing" << endl;
@@ -119,7 +134,7 @@ int main(){
     
     // spans are essentially pointers but allow not only at indexing and subranging but alsoknowing the size of the data
     // however spans don't resize
-    char data[10] = "Testing"; 
+    unsigned char data[10] = "Testing"; 
 
     // pass by reference means pass the actual object not a sopy of the value
     boost::asio::mutable_buffer Span = boost::asio::mutable_buffer(data, sizeof(data));

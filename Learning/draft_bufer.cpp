@@ -2,12 +2,16 @@
 #include <array>
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
+#include <iomanip>
+#include <fstream>
 
 // Exception occurred: connect: Connection refused
 
 using boost::asio::ip::tcp;
 using std::cout;
 using std::endl;
+
+const uint8_t header_bytes = 4;
 
 class SocketConnection{
     public:
@@ -20,17 +24,23 @@ class SocketConnection{
         return socket_;
     }
     
-    void initialize_message(){
-        // right now do it with async read with fixes amount of bytes protocol - shared of 512 bytes or something
-        std::vector<char> data(15);
-        std::shared_ptr<boost::asio::mutable_buffer> buffer2 = std::make_shared<boost::asio::mutable_buffer>(boost::asio::buffer(data));
-        //boost::asio::mutable_buffer buffer = boost::asio::buffer(data);
-        boost::asio::read(socket_,*buffer2); // buffer.data points to the address of the vector
-        cout << *(static_cast<char *>(buffer2->data())) << endl;
+    
 
-        for(char d : data){
-            cout << d << endl;
+    // can write data structs, makles life a lot easier
+    void initialize_message(){
+       
+    }
+    void data_read(std::vector<unsigned char> data,const boost::system::error_code& error){
+
+        if(!error){
+            initialize_message();
+
+        }else if(error == boost::asio::error::eof){
+            cout << "All Data read" << endl;
+        }else{
+            throw boost::system::system_error(error);
         }
+
     }
 
     private:
@@ -46,11 +56,7 @@ class Server{
             start_accept();
         }
         void start_accept(){
-        //creates a socket and assigns a shared pointer to the socket
-            std::shared_ptr<SocketConnection> socketConnection = std::make_shared<SocketConnection>(io_context_);
-
-        // takes in a new connection's socket and binds the handler function with this isntance, the connection variable, and an error placeholder
-        // because I am passign this, I need to have a pointer to that function, so it knows how to call it, if it was a function outside, could just have regular function
+        std::shared_ptr<SocketConnection> socketConnection = std::make_shared<SocketConnection>(io_context_);
         acceptor_.async_accept((*socketConnection).getSocket(), boost::bind(&Server::handle_accept, this, socketConnection, boost::asio::placeholders::error));
         }
 
