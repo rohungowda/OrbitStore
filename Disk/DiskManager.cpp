@@ -3,25 +3,6 @@
 #include <thread>
 
 
-class DiskAccess{
-    public:
-        DiskAccess()
-        {}
-
-        void read(int pageID){
-            
-        }
-
-        void write(int pageID){
-
-        }
-
-    
-    private:
-        int byte_pointer;
-
-};
-
 
 class DiskManager{
     public:
