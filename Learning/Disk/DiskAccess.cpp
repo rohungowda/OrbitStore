@@ -4,7 +4,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind/bind.hpp>
 
-#include "../globals.h"
+#include "../../globals.h"
 
 
 

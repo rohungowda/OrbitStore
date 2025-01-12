@@ -1,7 +1,7 @@
 #ifndef SCHEDULER_H
 #define SCHEDULER_H 
 
-#include "../globals.h"
+#include "../../globals.h"
 
 #include "Comparators.h"
 
