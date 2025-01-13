@@ -18,21 +18,32 @@ public:
 
     ServiceInterface(const std::shared_ptr<Service<T>> & serviceType, const std::shared_ptr<Broker<T>> &sharedbroker)
     {
-        startThread(serviceType, sharedbroker); // only pointer reference is const, can't change where it is pointing to
+        sharedbroker->setupService(gate);
+        service_thread = std::thread(&ServiceInterface::startThread, this, std::ref(serviceType), std::ref(sharedbroker));
     }
 
     void startThread(const std::shared_ptr<Service<T>> & serviceType, const std::shared_ptr<Broker<T>> &sharedbroker){
-        std::cout << "Server Interface" << std::endl;
-        serviceType->handle_task();
-        sharedbroker->test();
+        while(run){
+                
+
+                std::unique_lock<std::mutex> lock(gate_mtx);
+                gate.wait(lock,[this, sharedbroker]() { return (sharedbroker->getAwake());});
+                
+                std::this_thread::sleep_for(std::chrono::seconds(2));
+                std::cout << sharedbroker->getTask() << " Task handled" << std::endl;
+
+                sharedbroker->notifyWatcher(sharedbroker->getTask());
+
+            }
         
     }
 
 
 private:
     std::thread consumer_thread;
-    std::mutex mtx;
-    std::condition_variable cv;
+    std::mutex gate_mtx;
+    std::condition_variable gate;
+    std::thread service_thread;
 };
 
 
