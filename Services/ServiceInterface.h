@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <iostream>
 #include <memory>
+#include <boost/asio.hpp>
 
 
 template <typename T>
@@ -18,7 +19,7 @@ public:
 
     ServiceInterface(const std::shared_ptr<Service<T>> & serviceType, const std::shared_ptr<Broker<T>> &sharedbroker)
     {
-        sharedbroker->setupService(gate);
+        sharedbroker->setupService(gate, io_context, serviceType->handle_task());
         service_thread = std::thread(&ServiceInterface::startThread, this, std::ref(serviceType), std::ref(sharedbroker));
     }
 
@@ -29,7 +30,8 @@ public:
                 std::unique_lock<std::mutex> lock(gate_mtx);
                 gate.wait(lock,[this, sharedbroker]() { return (sharedbroker->getAwake());});
                 
-                std::this_thread::sleep_for(std::chrono::seconds(2));
+                io_context.run();
+
                 std::cout << sharedbroker->getTask() << " Task handled" << std::endl;
 
                 sharedbroker->notifyWatcher(sharedbroker->getTask());
@@ -44,6 +46,7 @@ private:
     std::mutex gate_mtx;
     std::condition_variable gate;
     std::thread service_thread;
+    boost::asio::io_context io_context;
 };
 
 

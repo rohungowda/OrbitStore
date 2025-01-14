@@ -5,7 +5,7 @@ template <typename T>
 class Service
 {
 public:
-    virtual void handle_task() = 0;
+    virtual boost::asio::awaitable<void> handle_task() = 0;
 
 };
 
