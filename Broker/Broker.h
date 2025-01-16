@@ -6,8 +6,11 @@
 #include <iostream>
 #include <mutex>
 #include <condition_variable>
-#include <boost/asio.hpp>
 
+#include <boost/asio.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detached.hpp>
+#include <boost/asio/use_awaitable.hpp>
 
 template <typename T>
 class Broker  {
@@ -16,18 +19,20 @@ class Broker  {
         : messageLength(0)
         {}
 
-        void notifyService(T task, size_t currentLength){
+        void notifyService(std::shared_ptr<T> task, size_t currentLength){
             std::unique_lock<std::mutex> lock(mutex);
             awake = true;
             messageLength = currentLength;
 
-            boost::asio::co_spawn(contextReference, saved_handler, boost::asio::detached);
+            boost::asio::co_spawn(*contextReference,[this, &task](){
+                return saved_handler(task);
+            } , boost::asio::detached);
 
             ServiceCondition->notify_one();
 
         }
 
-        void notifyWatcher(T data){
+        void notifyWatcher(){
             std::unique_lock<std::mutex> lock(mutex);
             if(messageLength == 0){
                 awake = false;
@@ -38,7 +43,7 @@ class Broker  {
             return awake;
         }
 
-        void setupService(std::condition_variable &cv, boost::asio::io_context &context, std::function<boost::asio::awaitable<void>> async_handler){
+        void setupService(std::condition_variable &cv, boost::asio::io_context &context, std::function<boost::asio::awaitable<void>(std::shared_ptr<T>& data)> async_handler){
             ServiceCondition = &cv;
             contextReference = &context;
             saved_handler = async_handler;
@@ -52,7 +57,7 @@ class Broker  {
         std::mutex mutex;
 
         boost::asio::io_context* contextReference;
-        std::function<boost::asio::awaitable<void>> saved_handler;
+        std::function<boost::asio::awaitable<void>(std::shared_ptr<T>& data)> saved_handler; // right now no paramters need to change that depending on the type
         // completion handler too
 
 };

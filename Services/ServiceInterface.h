@@ -19,7 +19,8 @@ public:
 
     ServiceInterface(const std::shared_ptr<Service<T>> & serviceType, const std::shared_ptr<Broker<T>> &sharedbroker)
     {
-        sharedbroker->setupService(gate, io_context, serviceType->handle_task());
+        // the lambda will reutn a std::function<awaitable type>
+        sharedbroker->setupService(gate, io_context, [serviceType](std::shared_ptr<T>& data) { return serviceType->handle_task(data); });
         service_thread = std::thread(&ServiceInterface::startThread, this, std::ref(serviceType), std::ref(sharedbroker));
     }
 
@@ -32,9 +33,9 @@ public:
                 
                 io_context.run();
 
-                std::cout << sharedbroker->getTask() << " Task handled" << std::endl;
+                std::cout << " All Task handled" << std::endl;
 
-                sharedbroker->notifyWatcher(sharedbroker->getTask());
+                sharedbroker->notifyWatcher();
 
             }
         

@@ -11,8 +11,9 @@ class DiskService : public Service<T>{
     public:
         DiskService(){}
 
-        boost::asio::awaitable<void> handle_task() override{
-            std::cout << "Disk Service Stackless Coroutine" << std::endl;
+        boost::asio::awaitable<void> handle_task(std::shared_ptr<T>& data) override{
+            data->getPromise().set_value(data->getBuffer());
+            std::cout << "CallBack function set" << std::endl;
             co_return;
         }
 };

@@ -5,7 +5,9 @@ template <typename T>
 class Service
 {
 public:
-    virtual boost::asio::awaitable<void> handle_task() = 0;
+    // basically this needs to take in a promise and any messageData, once it processes it will set the promise value
+    // either make a callback virtual function or let each service define it, most likely callback
+    virtual boost::asio::awaitable<void> handle_task(std::shared_ptr<T>& data) = 0;
 
 };
 

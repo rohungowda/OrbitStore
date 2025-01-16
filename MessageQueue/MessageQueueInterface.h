@@ -19,7 +19,6 @@ public:
 
     MessageQueueInterface(const std::shared_ptr<Broker<T>> &sharedbroker)
     {
-        sharedbroker->setupWatcher(gate);
         consumer_thread = std::thread(&MessageQueueInterface::startThread, this, std::ref(sharedbroker));
     }
 
@@ -29,7 +28,7 @@ public:
     }
 
 
-    void Push(T task){
+    void Push(std::shared_ptr<T> task){
         std::unique_lock<std::mutex> lock(mtx);
         messageQueue.push(task);
         lock.unlock();
@@ -42,7 +41,7 @@ public:
 
                 std::unique_lock<std::mutex> lock(mtx);
                 cv.wait(lock,[this]() { return !messageQueue.empty();});
-                T task = messageQueue.front();
+                std::shared_ptr<T> task = messageQueue.front();
                 messageQueue.pop();
                 size_t length= messageQueue.size();
                 lock.unlock();
@@ -71,7 +70,7 @@ private:
     std::condition_variable cv;
     std::condition_variable gate;
     std::thread messageThread;
-    std::queue<T> messageQueue;
+    std::queue<std::shared_ptr<T>> messageQueue;
     //std::shared_ptr<Broker<T>> &messageBroker;
 };
 
