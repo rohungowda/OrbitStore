@@ -45,14 +45,7 @@ public:
                 messageQueue.pop();
                 size_t length= messageQueue.size();
                 lock.unlock();
-
-                //std::cout << sharedbroker->getConsume() << std::endl;
-
-                sharedbroker->notifyService(task, length);
-                //std::unique_lock<std::mutex> gate_lock(gate_mtx);
-                //gate.wait(gate_lock,[this, sharedbroker]() { return sharedbroker->getConsume();});
-
-                std::cout << task << " Message Delivered" << std::endl;
+                sharedbroker->notifyService(task);
 
             }
         

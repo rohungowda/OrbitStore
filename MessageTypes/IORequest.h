@@ -1,12 +1,12 @@
-#ifndef INTERNALMESSAGE_H
-#define INTERNALMESSAGE_H
+#ifndef IORequest_H
+#define IORequest_H
 
 #include <future>
 
-class InternalMessage{
+class IORequest{
     public:
         // promise returns a buffer
-        InternalMessage(int page, char* buffer, std::promise<char*>& prom);
+        IORequest(int page, char* buffer, std::promise<char*>& prom);
 
         int getPageID();
 

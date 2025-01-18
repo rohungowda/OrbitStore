@@ -1,13 +1,18 @@
 #ifndef SERVICE_H
 #define SERVICE_H
 
+#include <boost/asio.hpp>
+#include <boost/asio/co_spawn.hpp>
+#include <boost/asio/detached.hpp>
+#include <boost/asio/use_awaitable.hpp>
+
 template <typename T>
 class Service
 {
 public:
-    // basically this needs to take in a promise and any messageData, once it processes it will set the promise value
-    // either make a callback virtual function or let each service define it, most likely callback
-    virtual boost::asio::awaitable<void> handle_task(std::shared_ptr<T>& data) = 0;
+
+    // function used as entry point for schedulers
+    virtual boost::asio::awaitable<void> handle_task(std::shared_ptr<T> data) = 0;
 
 };
 
