@@ -6,19 +6,22 @@
 class IORequest{
     public:
         // promise returns a buffer
-        IORequest(int page, char* buffer, std::promise<char*>& prom);
+        IORequest(bool write, int page, char* buffer, std::promise<bool>& prom);
+
+        bool getWriteStatus();
 
         int getPageID();
 
         char* getBuffer();
 
-        std::promise<char*>& getPromise();
+        std::promise<bool>& getPromise();
 
     
     private:
+        bool write;
         int pageID;
         char* bufferAdress; // pointer to the buffer
-        std::promise<char*>& BufferPromise;
+        std::promise<bool>& BufferPromise;
 };
 
 #endif

@@ -11,25 +11,32 @@ int main(){
     // Create a Factory Class which will Instantiate everything
     std::shared_ptr<ServiceScheduler<IORequest>> diskInterface =  std::make_shared<ServiceScheduler<IORequest>>(std::make_shared<DiskManager<IORequest>>());
     // in actual memory buffer we want to dynamically allocate it
-    char buffer1[PAGE_SIZE];
-    char buffer2[PAGE_SIZE];
-    char buffer3[PAGE_SIZE];
-    char buffer4[PAGE_SIZE]; 
+    alignas(PAGE_SIZE) char buffer1[PAGE_SIZE];
+    alignas(PAGE_SIZE) char buffer2[PAGE_SIZE];
+
+    for(int i = 0; i < PAGE_SIZE; i++){
+        buffer1[i] = static_cast<char>(5);
+    }
 
 
-    std::thread t1([&diskInterface,&buffer1, &buffer3,  &buffer2,  &buffer4](){
-         std::promise<char*> p;
-        std::future<char*> f = p.get_future();
+    std::promise<bool> p;
+    std::future<bool> f = p.get_future();
 
-    diskInterface->notify(std::make_shared<IORequest>(5, buffer1, std::ref(p)));
-    diskInterface->notify(std::make_shared<IORequest>(20, buffer2, std::ref(p)));
-    diskInterface->notify(std::make_shared<IORequest>(15, buffer3, std::ref(p)));
-    diskInterface->notify(std::make_shared<IORequest>(25, buffer4, std::ref(p)));
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    diskInterface->notify(std::make_shared<IORequest>(true, 5, buffer1, std::ref(p)));
+    f.get();
 
-    });
-        t1.join();
+    std::promise<bool> pa;
+    std::future<bool> fa = pa.get_future();
 
+    diskInterface->notify(std::make_shared<IORequest>(false, 5, buffer2, std::ref(pa)));
+    fa.get();
+
+
+
+    for(int i = 0; i < 20; i++){
+        std::cout <<"Hello " <<  buffer2[i] << "";
+    }
+    std::cout << std::endl;
 
 
     printTimestamp("program ends with status ", 0);

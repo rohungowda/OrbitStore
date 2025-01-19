@@ -2,8 +2,8 @@
 
 
 
-IORequest::IORequest(int page, char* buffer, std::promise<char*>& prom)
-: pageID(page), bufferAdress(buffer), BufferPromise(prom)
+IORequest::IORequest(bool wCheck, int page, char* buffer, std::promise<bool>& prom)
+: pageID(page), bufferAdress(buffer), BufferPromise(prom), write(wCheck)
 {}
 
 int IORequest::getPageID(){
@@ -14,6 +14,10 @@ char* IORequest::getBuffer(){
     return bufferAdress;
 }
 
-std::promise<char*>& IORequest::getPromise(){
+std::promise<bool>& IORequest::getPromise(){
     return BufferPromise;
+}
+
+bool IORequest::getWriteStatus(){
+    return write;
 }

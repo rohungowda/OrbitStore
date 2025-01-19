@@ -2,34 +2,55 @@
 #define DiskManager_H
 
 #include "Service.h"
+#include "../globals.h"
 
 #include <iostream>
-#include <fstream>
 
 template <typename T>
 class DiskManager : public Service<T>{
 
     public:
-        DiskManager(){}
+        DiskManager(){
+            fd = open("data.bin", O_RDWR | O_CREAT | O_DIRECT, S_IRWXU);
+        }
+
+        ~DiskManager(){
+            close(fd);
+        }
 
         boost::asio::awaitable<void> handle_task(std::shared_ptr<T> data) override{
-            //data->getPromise().set_value(data->getBuffer());
-            printTimestamp("Disk Service", data->getPageID());
+
+            if(data->getWriteStatus()){
+                writePage(data->getPageID(), data->getBuffer()); 
+            }else{
+                readPage(data->getPageID(), data->getBuffer()); 
+            }
+            
+            data->getPromise().set_value(true);
             co_return;
         }
 
         // functions to co_await
-        void readPage(int pageID, char* buffer);
-        void writePage(int pageID, char* buffer);
+        void readPage(int pageID, char* buffer){
+            off_t start = 0;
+            ssize_t bytesRead = pread(fd, buffer, PAGE_SIZE, start);
+            printTimestamp("Buffer read", bytesRead);
+        }
+
+        void writePage(int pageID, char* buffer){
+            off_t start = 0;
+            ssize_t bytesWritten = pwrite(fd, buffer, PAGE_SIZE, start);
+             printTimestamp("Buffer Wrote", bytesWritten);
+        }
         void delPage(int pageID, char* buffer);
         void allocatePage(int offset);
 
     private:
-        std::unordered_map<int,int> pageTable;
+        std::unordered_map<int,off_t> pageTable;
         std::vector<int> freeslots;
         std::mutex io_latch;
 
-        std::fstream db_file; // each buffer pool has an access to a Disk Scheduler which runs on the thread that calls it
+        int fd;
 
 };
 
