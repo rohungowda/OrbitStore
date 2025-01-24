@@ -11,8 +11,10 @@ int main(){
     // Create a Factory Class which will Instantiate everything
     std::shared_ptr<ServiceScheduler<IORequest>> diskInterface =  std::make_shared<ServiceScheduler<IORequest>>(std::make_shared<DiskManager<IORequest>>());
     // in actual memory buffer we want to dynamically allocate it
+
     alignas(PAGE_SIZE) char buffer1[PAGE_SIZE];
     alignas(PAGE_SIZE) char buffer2[PAGE_SIZE];
+
 
     for(int i = 0; i < PAGE_SIZE; i++){
         buffer1[i] = static_cast<char>(5);
@@ -34,7 +36,8 @@ int main(){
 
 
     for(int i = 0; i < 20; i++){
-        std::cout <<"Hello " <<  buffer2[i] << "";
+        //printf("%02x ", buffer2[i]);
+        std::cout << static_cast<int>(buffer2[i]) << " ";
     }
     std::cout << std::endl;
 

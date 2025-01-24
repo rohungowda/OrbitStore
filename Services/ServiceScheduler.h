@@ -24,7 +24,7 @@ public:
     ServiceScheduler(std::shared_ptr<Service<T>> serviceType)
     :  ServiceManager(serviceType)
     {
-        // the lambda will reutn a std::function<awaitable type>
+        // the lambda will return a std::function<awaitable type>
         service_thread = std::thread(&ServiceScheduler::startThread, this);
     }
 
