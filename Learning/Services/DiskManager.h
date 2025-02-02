@@ -47,6 +47,7 @@ class DiskManager : public Service<T>{
         void delPage(int pageID, char* buffer);
         void allocatePage(int offset);
         void findFreeRecordSpot();
+        void createDataPage();
 
     private:
 
