@@ -3,9 +3,9 @@
 
 #include <string>
 
-namespace Orbit{
+#include "Conversions.h"
 
-struct UserRequest{};
+namespace Orbit{
 
 enum STATUS{
 
@@ -23,25 +23,24 @@ class DB{
         DB(const DB&) = delete;
         DB operator=(const DB&) = delete;
 
-        // singleton want to keep internals hidden
+        STATUS start();
 
         // Basic Operations
-        virtual STATUS PUT(UserRequest req) = 0;
-        virtual STATUS GET(UserRequest req) = 0;
-        virtual STATUS DELETE(UserRequest req) = 0;
-        virtual STATUS SCAN(UserRequest req) = 0; // modify delete or read a specific range of keys
+        STATUS PUT(UserRequest req);
+        STATUS GET(UserRequest req);
+        STATUS DELETE(UserRequest req);
+        STATUS SCAN(UserRequest req); // modify delete or read a specific range of keys
         
-        virtual STATUS BatchRequest(UserRequest req) = 0;
+        STATUS BatchRequest(UserRequest req);
 
         // not sure yet
-        virtual STATUS DBmetrics() = 0;
+        STATUS DBmetrics();
 
-        virtual STATUS deleteDB() = 0;
-        virtual STATUS closeDB() = 0;
+        STATUS deleteDB();
+        STATUS closeDB();
 
     private:
-        virtual STATUS runCompaction() = 0;
-        virtual STATUS start() = 0;
+       STATUS runCompaction();
 
 };
 
