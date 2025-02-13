@@ -17,12 +17,6 @@ namespace Orbit{
             // Allocates some amount of memory needed
             char * Allocate(size_t size);
 
-            // allocates a large memory block
-            char * AllocateBlock(size_t size);
-
-            // allocate aligned
-            char* AllocateAligned(size_t size);
-
             // get memory size
             size_t getMemorySize();
 
@@ -33,6 +27,16 @@ namespace Orbit{
 
             std::atomic<size_t> totalSize;
             std::mutex mtx;
+            const size_t BLOCKSIZE = 1024;
+            
+            std::vector<char*> freeSpace;
+
+            // allocates a large memory block
+            char * AllocateBlock(size_t size);
+
+            // allocate aligned
+            char* AllocateAligned(size_t size);
+
             
 
     };
