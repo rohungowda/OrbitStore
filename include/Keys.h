@@ -1,8 +1,12 @@
 #ifndef CONVERSIONS_H
 #define CONVERSIONS_H
 
+#include <cstddef>
+#include <string>
+
 namespace Orbit{
-    struct UserRequest{};
+    class UserRequest{
+    };
 
 }
 

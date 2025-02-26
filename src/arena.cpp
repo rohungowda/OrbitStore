@@ -3,8 +3,14 @@
 
 using namespace Orbit;
 
-/*maybe keep space in sorted order and do binary search - some reseasrch adn planning needed*/
-/*Implement freespace list - maybe not a vector? and test regular allocation and byte use with mulyiple threads. Then do Aligned allocation and use*/
+/*
+TODO
+
+- allocate Allign
+- Linked list
+- freeSpace List
+
+*/
 
 Arena::Arena()
 : ptr(nullptr), bytesRemain(0), totalSize(0)
@@ -19,7 +25,9 @@ Arena::~Arena(){
 // allign arranging data in memory so that data is stored at adress that is multiple of the size of data
 // allows processors to be more efficient
 char* Arena::AllocateAligned(size_t size){
-
+    // haven't implemented AllocateAligned and FreeSpace linked list !!!
+    assert(false);
+    return nullptr; 
 }
 
 size_t Arena::getMemorySize(){
@@ -29,17 +37,22 @@ size_t Arena::getMemorySize(){
 char* Arena::Allocate(size_t size){
     // check if there are enough bytes to allocate
 
-    assert(size > 0);
+    // if statment false throws a runtime error
+    assert(size > 0 && size < BLOCKSIZE);
 
     std::unique_lock<std::mutex> lock(mtx);
 
-    if(bytesRemain < size){
+    if(bytesRemain <= size){
         ptr = AllocateBlock(BLOCKSIZE);
     }
 
     char* returnPtr = ptr;
-    ptr += size;
+    
+    // add 1 to offset where the ptr will start from next
+    ptr += (size + 1);
     bytesRemain -= size;
+
+    totalSize.fetch_add(size, std::memory_order_relaxed);
     lock.unlock();
 
     return returnPtr;
@@ -53,7 +66,6 @@ char* Arena::AllocateBlock(size_t size)
     blockHolder.push_back(block);
 
     // operation is atomic with mem_order_relax but is not synchronized among threads
-    totalSize.fetch_add(size + sizeof(char*), std::memory_order_relaxed);
 
     return block;
 }
