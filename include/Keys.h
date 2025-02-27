@@ -8,6 +8,10 @@
 
 namespace Orbit{
     
+    // TODO - Understasnd Bytes and char*, const char*, and what exactly I am storing + Finish Encoding Scheme and Helper functions + Test Everything built so far
+
+    static int BYTESIZE = 128;
+
     class Slice{
         public:
             Slice(): data_(nullptr), size(0) {}
@@ -72,6 +76,34 @@ namespace Orbit{
 
     }
 
+    int LengthCalculate(size_t size){
+        int bytes = 1;
+        while(size >= BYTESIZE){
+            size >>= 7;
+            bytes += 1;
+        }
+
+        return bytes;
+    }
+
+    // char* byte stores for onyl -128 to 128
+    // unsigned char always stores in between 0 - 256 values
+ 
+    char* createLengthEncoding(char * locate, const Slice &value){
+
+        size_t keyByteSize = LengthCalculate(value.getSize());
+        size_t actualKeySize = value.getSize();
+
+        // this is for size_t which is always positive
+        while(keyByteSize > 0){
+            *(locate++) = actualKeySize && BYTESIZE;
+            actualKeySize >> 7;
+        }
+
+        return nullptr;
+
+    }
+
     class UserRequest{
         public:
             UserRequest(Slice key, Slice value, uint8_t type, uint64_t sequenceNumber)
@@ -82,8 +114,8 @@ namespace Orbit{
             }
 
             size_t getLength(){
-                // TODO keyLength + actual key + SequenceNumber + type + valueLength + value
-                return 0;
+                // keyLength + actual key + SequenceNumber + type + valueLength + value
+                return (LengthCalculate(key_.getSize()) + key_.getSize() + sizeof(uint8_t) + sizeof(uint64_t) + LengthCalculate(value_.getSize()) + value_.getSize());
             }
 
             // getters
