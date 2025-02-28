@@ -8,9 +8,11 @@
 
 namespace Orbit{
     
-    // TODO - Understasnd Bytes and char*, const char*, and what exactly I am storing + Finish Encoding Scheme and Helper functions + Test Everything built so far
+    // TODO - Testing + Assertion + Helper functions
 
-    static int BYTESIZE = 128;
+    static int CHARBYTESIZE = 128;
+    static int BYTESIZE = 256;
+    static int ByteMask = 0x7F;
 
     class Slice{
         public:
@@ -76,9 +78,10 @@ namespace Orbit{
 
     }
 
+    // how many bytes it takes to store a size variable while using the continuation bit encoding
     int LengthCalculate(size_t size){
         int bytes = 1;
-        while(size >= BYTESIZE){
+        while(size >= CHARBYTESIZE){
             size >>= 7;
             bytes += 1;
         }
@@ -86,32 +89,45 @@ namespace Orbit{
         return bytes;
     }
 
-    // char* byte stores for onyl -128 to 128
-    // unsigned char always stores in between 0 - 256 values
- 
+    // char - > repurpose the MSB as a continuation bit
+    // const char* not planning on modifying data
+    // char* plainning on modifying data
+    // returns a char pointing to the next part of the sequence
     char* createLengthEncoding(char * locate, const Slice &value){
 
+        char* reader = locate;
+
         size_t keyByteSize = LengthCalculate(value.getSize());
-        size_t actualKeySize = value.getSize();
+        size_t actualDataSize = value.getSize();
+
 
         // this is for size_t which is always positive
         while(keyByteSize > 0){
-            *(locate++) = actualKeySize && BYTESIZE;
-            actualKeySize >> 7;
+            *(reader++) = (keyByteSize & ByteMask) | BYTESIZE;
+            keyByteSize >> 7;
         }
 
-        return nullptr;
+        // sets the MSB or continution bit to 0
+        reader--;
+        *(reader) = *(reader) & ByteMask;
+        reader++;
+
+
+        for(size_t i = 0; i < value.getSize(); i++){
+            *(reader++) = *(value.getDataPtr() + i);
+        }
+
+        return reader;
 
     }
+
+
 
     class UserRequest{
         public:
             UserRequest(Slice key, Slice value, uint8_t type, uint64_t sequenceNumber)
             : key_(key), value_(value), type_(type), sequenceNumber_(sequenceNumber) {}
 
-            bool encode(const char* dest){
-                
-            }
 
             size_t getLength(){
                 // keyLength + actual key + SequenceNumber + type + valueLength + value
@@ -131,6 +147,30 @@ namespace Orbit{
             uint8_t type_;
             uint64_t sequenceNumber_;
     };
+
+    void encode(UserRequest req, char* dest){
+        // key encoding
+        dest = createLengthEncoding(dest, req.getKey());
+        
+        // type encoding
+        *(dest++) = static_cast<char>(req.getType());
+
+        // seqeuence encoding
+        uint64_t copy = req.getSequenceNumber();
+
+        // want it to be 8 bytes exactly
+        for(int i = 0; i < 8; i++){
+            *(dest++) = copy & 0xFF;
+            copy >>= 8;
+        }
+
+        // value encoding
+        dest = createLengthEncoding(dest, req.getValue());
+
+        // need a check here to make sure everything works -> like an assert
+
+    }
+
 
 }
 
