@@ -1,7 +1,7 @@
 #ifndef MEMTABLE_H
 #define MEMTABLE_H
 
-#include "Conversions.h"
+#include "Keys.h"
 #include "arena.h"
 
 // have the key as a hash converted and serialzied, right now think about it as simple key and values

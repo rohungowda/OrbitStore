@@ -6,6 +6,8 @@
 #include <cstring>
 #include <cassert>
 
+#include <iostream>
+
 namespace Orbit{
     
     // TODO - Testing + Assertion + Helper functions
@@ -18,9 +20,11 @@ namespace Orbit{
         public:
             Slice(): data_(nullptr), size(0) {}
             Slice(const std::string &data) : data_(data.data()), size(data.size()) {}
+
+
             Slice(const char* data, size_t n) : data_(data), size(n) {}
 
-            // copyable - but shallow copy copies the pointer and size not the actual data at pointer
+            // copyable - does not make a shallow copy
             Slice(const Slice&) = default;
             Slice& operator=(const Slice&) = default;
 
@@ -50,6 +54,7 @@ namespace Orbit{
             // comparator
 
         private:
+            // data is immutable once assigned
             const char* data_;
             size_t size;
     };
@@ -66,12 +71,16 @@ namespace Orbit{
     // 0 if equal
     // > 0 if x > y
     // < 0 if x < y
+    // note smaller values should be sorted first and punctuation should come first
     int CompareSlices(const Slice& x, const Slice& y){
-        size_t size = std::min(x.getSize(), y.getSize());
+        const size_t size = std::min(x.getSize(), y.getSize());
+
+        // there is something going on here where one of the size and pointers are not being copied properly?
+        
         int compared = std::memcmp(x.getDataPtr(), y.getDataPtr(), size);
 
         if(compared == 0){
-            return (x.getSize() == y.getSize()) ? compared : (x.getSize() < y.getSize()) ? 1 : -1;
+            return (x.getSize() == y.getSize()) ? compared : (x.getSize() < y.getSize()) ? -1 : 1;
         }else{
             return compared;
         }

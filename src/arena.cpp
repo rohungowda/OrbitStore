@@ -3,6 +3,9 @@
 
 using namespace Orbit;
 
+#include <iostream>
+#include <iomanip>
+
 /*
 TODO
 
@@ -49,11 +52,12 @@ char* Arena::Allocate(size_t size){
     char* returnPtr = ptr;
     
     // add 1 to offset where the ptr will start from next
-    ptr += (size + 1);
+    ptr += size;
     bytesRemain -= size;
 
     totalSize.fetch_add(size, std::memory_order_relaxed);
     lock.unlock();
+
 
     return returnPtr;
 
@@ -66,6 +70,6 @@ char* Arena::AllocateBlock(size_t size)
     blockHolder.push_back(block);
 
     // operation is atomic with mem_order_relax but is not synchronized among threads
-
+    //std::cout << std::hex << "block Adress: " << reinterpret_cast<uintptr_t>(block) << std::endl;
     return block;
 }
