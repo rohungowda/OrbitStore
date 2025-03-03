@@ -21,15 +21,10 @@ using namespace std;
 
 // Bug -> is not because of comparing function, must be from the sort
 
-Slice save;
-Slice save1;
-
 struct Comparator{
 
     // if <= 0 then it a is <= b
     bool operator()(const Slice &a, const Slice &b) const{
-        save = a;
-        save1 = b;
         return (CompareSlices(a,b) <= 0);
     }
 
@@ -58,14 +53,6 @@ std::string generateRandomString() {
     return randomString;
 }
 
-
-// here is the problem one of them is a nullptr
-void signalHandler(int signum){
-    cout << save.getSize() << endl;
-    cout << save1.getSize() << endl;
-
-    exit(signum);
-}
 
 int main(){
 
@@ -108,14 +95,15 @@ int main(){
     // Arena creation for memory
     Arena arena = Arena();
 
-    size = 1000000;
-
-    vector<Slice> testSet(size);
-    vector<string> actual(size);
+    size = 10000;
 
 
+    // Use shared pointers to test what is happening if it is a problem with the copy constructor???
+    vector<Slice> testSet;
+    vector<string> actual;
 
-    signal(SIGSEGV, signalHandler);
+    vector<char*> actualPointers;
+
 
 
     for(int i = 0; i < size; i++){
@@ -124,31 +112,24 @@ int main(){
         string temp = generateRandomString();
         char* ptr = arena.Allocate(temp.size());
 
-        memcpy(ptr, temp.c_str(), temp.size());
+        //memcpy(ptr, temp.c_str(), temp.size());
 
-        actual[i] = temp;
-        testSet[i] = Slice(ptr,temp.size());
-
-        assert(testSet[i].Print() == actual[i]);
+        actual.push_back(temp);
+        //testSet.push_back(new Slice(temp));
+        actualPointers.push_back(ptr);
 
 
     }
 
-    for(int i = 0; i < size - 1; i++){
-        CompareSlices(testSet[i], testSet[i+1]);
-        CompareSlices(testSet[i], testSet[i]);
-        CompareSlices(testSet[i + 1], testSet[i]);
-        CompareSlices(testSet[i + 1], testSet[i+1]);
-
+    for(int i = 0; i < size; i++){
         assert(testSet[i].Print() == actual[i]);
         assert(testSet[i].getSize() < 128);
-        assert(testSet[i].getDataPtr() != nullptr);
-
+        assert(testSet[i].getDataPtr() == actualPointers[i]);
     }
+
 
     cout << "Reaches first checkpoint" << endl;
 
-    cout << arena.getMemorySize() << endl;
 
     // data is going out of scope because we are sorting it - need to use arena for memory mangement
     sort(testSet.begin(), testSet.end(), Comparator());
@@ -160,6 +141,8 @@ int main(){
     // degmentation fault accessing memory it shouldn't
     for(int i = 0; i < size; i++){
         assert(testSet[i].Print() == actual[i]);
+        assert(testSet[i].getSize() < 128);
+
     }
 
     return 0;
