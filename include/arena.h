@@ -5,7 +5,10 @@
 #include <vector>
 #include <atomic>
 #include <mutex>
+#include "LinkedList.h"
 
+#include <iostream>
+using namespace std;
 
 namespace Orbit{
     class Arena{
@@ -20,6 +23,18 @@ namespace Orbit{
             // get memory size
             size_t getMemorySize();
 
+
+            void print(){
+                const Node* root = freespace.getRoot();
+    
+                while(root != nullptr){
+                    root->Print();
+                    cout  << " | " << root->dataSize << endl;
+            
+                    root = root->next;
+                }
+            }
+
         private:
             char* ptr;
             size_t bytesRemain;
@@ -29,7 +44,7 @@ namespace Orbit{
             std::mutex mtx;
             const size_t BLOCKSIZE = 1024;
             
-            std::vector<char*> freeSpace;
+            LinkedList freespace;
 
             // allocates a large memory block
             char * AllocateBlock(size_t size);

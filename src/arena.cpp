@@ -45,6 +45,12 @@ char* Arena::Allocate(size_t size){
 
     std::unique_lock<std::mutex> lock(mtx);
 
+    char* candidate = freespace.findCandidate(size);
+
+    if(candidate != nullptr){
+        return candidate;
+    }
+    
     if(bytesRemain <= size){
         ptr = AllocateBlock(BLOCKSIZE);
     }
@@ -65,6 +71,10 @@ char* Arena::Allocate(size_t size){
 
 char* Arena::AllocateBlock(size_t size)
 {
+
+    // add extra space to linkedlist
+    freespace.createEndNode(ptr, bytesRemain);
+
     char* block = new char[size];
     bytesRemain = size;
     blockHolder.push_back(block);

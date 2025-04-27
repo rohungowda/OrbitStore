@@ -13,12 +13,14 @@ namespace Orbit{
     // TODO - Testing + Assertion + Helper functions
 
     static int CHARBYTESIZE = 128;
-    static int BYTESIZE = 256;
+    static int BYTESIZE = 0x80;
     static int ByteMask = 0x7F;
 
     class Slice{
         public:
             Slice(): data_(nullptr), size(0) {}
+
+            // creates a pointer to the string data but if the data doesn't exist it can't do anything
             Slice(const std::string &data) : data_(data.data()), size(data.size()) {}
 
 
@@ -90,7 +92,7 @@ namespace Orbit{
     // how many bytes it takes to store a size variable while using the continuation bit encoding
     int LengthCalculate(size_t size){
         int bytes = 1;
-        while(size >= CHARBYTESIZE){
+        while(size > CHARBYTESIZE){
             size >>= 7;
             bytes += 1;
         }
@@ -102,7 +104,7 @@ namespace Orbit{
     // const char* not planning on modifying data
     // char* plainning on modifying data
     // returns a char pointing to the next part of the sequence
-    char* createLengthEncoding(char * locate, const Slice &value){
+    char* createLengthEncoding(char* locate, const Slice &value){
 
         char* reader = locate;
 
@@ -111,9 +113,10 @@ namespace Orbit{
 
 
         // this is for size_t which is always positive
+        // size -> extract all relevant
         while(keyByteSize > 0){
             *(reader++) = (keyByteSize & ByteMask) | BYTESIZE;
-            keyByteSize >> 7;
+            keyByteSize >>= 7;
         }
 
         // sets the MSB or continution bit to 0
@@ -121,10 +124,10 @@ namespace Orbit{
         *(reader) = *(reader) & ByteMask;
         reader++;
 
+        // copy all data fromt eh value to the location identified
+        std::memcpy(reader, value.getDataPtr(), value.getSize());
 
-        for(size_t i = 0; i < value.getSize(); i++){
-            *(reader++) = *(value.getDataPtr() + i);
-        }
+        reader += value.getSize();
 
         return reader;
 

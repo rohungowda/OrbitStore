@@ -30,14 +30,12 @@ struct Comparator{
 
 };
 
-// Basicvally sort is causing the size of a Slice to grow exponentially and for soem reason sets a sata_ to a nullpointer somehow, but its not because of the Comaprator function
-
 
 const std::string charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 "; // _/?><.,#+=[]-_!@$%^&*()|`~{};:\\\"
 std::random_device rd;
 std::mt19937 gen(rd());
 
-std::uniform_int_distribution<> dist(0, charset.size() - 1);
+std::uniform_int_distribution<int> dist(0, charset.size() - 1);
 std::uniform_int_distribution<int> lengthDist(1, 126);
 
 // basically a random device is like a library, the generator is the librarian and the uniofrm_distribution is the librarian getting books and calling the funciton is like passing the books
@@ -53,143 +51,75 @@ std::string generateRandomString() {
     return randomString;
 }
 
-
+// 8192 KB of stack Space, max amount of memory I can use for the stack
 int main(){
-
-    string temp = string("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ");
-
-    // Creating Slices
-
-    size_t size = 63;
-    // problem with the string constructor
-
-    // don't need c null terminator because of fized size given
-    char data[size] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ";
-
-    Slice test = Slice();
-    Slice testBytes = Slice(data, size);
-    Slice testString = Slice(temp);
-
-    // copy operator
-    test = testString;
-
-    Slice testParaCopy = Slice(testBytes);
-
-    // helper functions
-    test.clear();
-
-    assert(test.isEmpty() && !testString.isEmpty());
-
-    for(int i =0; i < size; i++){
-        assert(testBytes[i] == data[i]);
-    }
-
-    assert(testParaCopy.Print() == "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 ");
-
-
-
-    // equality operator
-    assert(testString == testBytes);
-    assert(testParaCopy != test);
 
     // Arena creation for memory
     Arena arena = Arena();
 
-    size = 10000;
+    int size = 100000;
 
 
-    // Use shared pointers to test what is happening if it is a problem with the copy constructor???
-    vector<Slice> testSet;
     vector<string> actual;
+    vector<Slice> test;
 
-    vector<char*> actualPointers;
 
+/*
+TODO***
+
+- figuree out wy there is a mysterious zero
+- figure out why data isn't printing correctly from the linked list part
+- make sure linked list is giving out spaces accurately
+- stress test and accurate test linked list
+- Work on encoders and decoders
+
+*/
+
+
+/*
+Tests Passed
+
+- able to sucessfully create Slice objects that retain where the data is on the heap
+- sorting error was really happening bercause of how a sort will call a recusion which increases the stack size
+- pushing a string onto the vector as a refernce may mean we lose the actual string that was created
+
+*/
 
 
     for(int i = 0; i < size; i++){
 
-        // here actual won't go out of scope
         string temp = generateRandomString();
         char* ptr = arena.Allocate(temp.size());
 
-        //memcpy(ptr, temp.c_str(), temp.size());
+        memcpy(ptr, temp.data(), temp.size());
 
         actual.push_back(temp);
-        //testSet.push_back(new Slice(temp));
-        actualPointers.push_back(ptr);
+
+        // intializes a pointer characther to where ptr data is
+        test.push_back(Slice(ptr, temp.size()));
 
 
     }
+
+    cout << "Loads everything into the vectors" << endl;
+
+
+    // cause of the problem is here when I sort, technically don't need to sort becasue storing sorteed structure, but want to understand why - !! Recursive calls lead to stack overflow
+    //sort(test.begin(), test.end(), Comparator());
+    //sort(actual.begin(), actual.end());
+
+    cout << "Succesfully sorts vectors" << endl;
 
     for(int i = 0; i < size; i++){
-        assert(testSet[i].Print() == actual[i]);
-        assert(testSet[i].getSize() < 128);
-        assert(testSet[i].getDataPtr() == actualPointers[i]);
-    }
-
-
-    cout << "Reaches first checkpoint" << endl;
-
-
-    // data is going out of scope because we are sorting it - need to use arena for memory mangement
-    sort(testSet.begin(), testSet.end(), Comparator());
-
-    cout << "Reaches second checkpoint" << endl;
-    sort(actual.begin(), actual.end());
-
-
-    // degmentation fault accessing memory it shouldn't
-    for(int i = 0; i < size; i++){
-        assert(testSet[i].Print() == actual[i]);
-        assert(testSet[i].getSize() < 128);
+        assert(test[i].Print() == actual[i]);
+        assert(test[i].getSize() < 128);
 
     }
+
+
+    arena.print();
+
+    cout << "Succesfully passes all tests" << endl;
 
     return 0;
 }
-
-/*
-        cout << "Test: " << (testSet[i].Print()) << endl;
-        cout << "Actual: " << actual[i] << endl << endl;;
-*/
-
-
-/*
-
-Case 1
-
-Beginning Allocation
-Allocating new Block
-munmap_chunk(): invalid pointer
-Aborted (core dumped)
-
-
-Case 2
-
-Beginning Allocation
-End Allocation
-
-munmap_chunk(): invalid pointer
-Aborted (core dumped)
-
-Case 3
-
-Beginning Allocation
-End Allocation
-
-Reaches the end
-munmap_chunk(): invalid pointer
-Aborted (core dumped)
-
-Case 4
-
-Beginning Allocation
-Allocating new Block
-Allocating Successfull
-End Allocation
-
-munmap_chunk(): invalid pointer
-Aborted (core dumped)
-
-
-*/
