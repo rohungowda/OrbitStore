@@ -67,11 +67,11 @@ int main(){
 /*
 TODO***
 
-- figuree out wy there is a mysterious zero
-- figure out why data isn't printing correctly from the linked list part
-- make sure linked list is giving out spaces accurately
-- stress test and accurate test linked list
-- Work on encoders and decoders
+- Combine Arena into LinkedList
+ - Linked List must be able to traverse through Nodes, insert nodes, and delete nodes
+- the Node class will Create Buffers, check buffers, fill bufffers, resetr buffers
+- the arena class will put all of it together
+
 
 */
 
@@ -82,8 +82,11 @@ Tests Passed
 - able to sucessfully create Slice objects that retain where the data is on the heap
 - sorting error was really happening bercause of how a sort will call a recusion which increases the stack size
 - pushing a string onto the vector as a refernce may mean we lose the actual string that was created
+- figuree out wy there is a mysterious zero (allocation always did an inital block first and needed to make sure the nodes that were added were for a larger limit)
+- data doesn't print becasue the actual root node doesn't ahve anything to priont, its empoty hgeap space that hasn't been used yet
 
 */
+
 
 
     for(int i = 0; i < size; i++){
@@ -117,7 +120,10 @@ Tests Passed
     }
 
 
+    
     arena.print();
+    cout << endl << (arena.getMemorySize()) << endl;
+    
 
     cout << "Succesfully passes all tests" << endl;
 

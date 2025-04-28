@@ -26,13 +26,15 @@ namespace Orbit{
 
             void print(){
                 const Node* root = freespace.getRoot();
-    
+                
                 while(root != nullptr){
                     root->Print();
                     cout  << " | " << root->dataSize << endl;
             
                     root = root->next;
                 }
+
+                cout << freespace.counter << endl;
             }
 
         private:

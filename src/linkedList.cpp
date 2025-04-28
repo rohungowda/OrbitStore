@@ -43,6 +43,8 @@ LinkedList::~LinkedList(){
     assert(root == nullptr);
 }
 
+
+
 char* LinkedList::findCandidate(size_t size){
     Node* ptr = root;
     Node* prev = nullptr;
@@ -59,6 +61,7 @@ char* LinkedList::findCandidate(size_t size){
             ptr->pointer += size;
 
             if(ptr->dataSize <= limit){
+                counter += ptr->dataSize;
                 // delete node
                 if(ptr->next == nullptr) {last = prev;}
 

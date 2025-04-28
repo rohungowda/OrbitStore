@@ -71,9 +71,9 @@ char* Arena::Allocate(size_t size){
 
 char* Arena::AllocateBlock(size_t size)
 {
-
-    // add extra space to linkedlist
-    freespace.createEndNode(ptr, bytesRemain);
+    // add extra space to linkedlist only when the pointer is not null ( meaning that we are looking at remaning space)
+    if(ptr != nullptr && bytesRemain > freespace.limit) {freespace.createEndNode(ptr, bytesRemain);}
+    
 
     char* block = new char[size];
     bytesRemain = size;

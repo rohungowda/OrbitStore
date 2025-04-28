@@ -31,8 +31,12 @@ namespace Orbit
     private:
         Node* root;
         Node* last;
-        size_t limit = 5;
+
     public:
+        size_t limit = 5;
+
+        int counter = 0;
+
         LinkedList();
         ~LinkedList();
         
