@@ -1,16 +1,9 @@
 #include "../include/LinkedList.h"
 
-
-
-using namespace Orbit;
-
-
 #include <iostream>
 #include <cassert>
 
-using namespace std;
-
-// have to be carefull with the char* data because once it goes out of scope, problems happen
+using namespace Orbit;
 
 LinkedList::LinkedList() : root(nullptr), last(nullptr) {}
 
@@ -25,8 +18,6 @@ void LinkedList::createEndNode(char* ptr, size_t size){
         last = last->next;
     }
 
-
-
 }
 
 LinkedList::~LinkedList(){
@@ -39,8 +30,6 @@ LinkedList::~LinkedList(){
 
     root = nullptr;
     last = nullptr;
-
-    assert(root == nullptr);
 }
 
 
@@ -61,21 +50,23 @@ char* LinkedList::findCandidate(size_t size){
             ptr->pointer += size;
 
             if(ptr->dataSize <= limit){
+                // bacuse of monolithic lock don't need to worry about - just to see how many bytes of space we are losing
                 counter += ptr->dataSize;
-                // delete node
+
+                // this means the ptr is the last node in the list, move last to the previous pointer
                 if(ptr->next == nullptr) {last = prev;}
 
                 if(prev == nullptr){
+                    // this means we are deleting the root node so we need to move the root to the next, if root is last node
+                    // it becomes a nullpointer
                     root = ptr->next;
-
                 }else{
+                    // this si middle deltion so regular way
                     prev->next = ptr->next;
                 }
 
                 delete ptr;
-
             }
-
 
             return returnPtr;
         }

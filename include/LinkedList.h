@@ -16,9 +16,6 @@ namespace Orbit
         Node(char* ptr, size_t size) : pointer(ptr), dataSize(size), next(nullptr) {}
 
 
-        // const after function signature means can't modify anything
-        void Print() const { std::cout.write(pointer, dataSize); }
-
         char* pointer;
         size_t dataSize;
         Node* next; 
@@ -44,12 +41,10 @@ namespace Orbit
 
         char* findCandidate(size_t size);
 
-        // const before means you can change the variable holding the data but you can't modify
+        // const before means you can change the variable holding the data but you can't modify ** needs to be reasdsinged variabel bc traverse!
         // const after means you can modify the data but the variable can't be reassigned
         const Node* getRoot() {return root;}
 
-
-        Node Search();
 
     };
     
