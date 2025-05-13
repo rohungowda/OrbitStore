@@ -5,9 +5,9 @@
 ## Features  
 - **Consistent Hashing Partitioning**  
   Ensures data distribution across nodes for scalability and fault tolerance.  
-- **B+ Tree Data Structures**  
+- **LSM Tree Data Structures**  
   Provides fast and efficient search, insert, and delete operations.  
-- **Disk Storage and Memory Buffer Management**  
+- **Disk Storage, Memory Buffer Management, and Arena Managment**  
   Combines persistent storage with in-memory caching for optimized performance.  
 - **Asynchronous TCP Connections**  
   Uses the Boost.Asio library for efficient non-blocking communication.  
