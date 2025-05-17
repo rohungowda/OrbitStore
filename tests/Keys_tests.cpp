@@ -12,7 +12,7 @@ int main(){
 
     // assuming key and value can be as large as possible - later can limit key size
     int minLength = 1;
-    int maxLength = 200; // 507
+    int maxLength = 3419; // 507
 
     const string PossibleCharacthers = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789// _/?><.,#+=[]-_!@$%^&*()|`~{};:\\\"";
 
@@ -22,9 +22,11 @@ int main(){
     std::uniform_int_distribution<int> lengthDist(minLength, maxLength);
 
 
-    int size = 100;
-    char buffer[1024];
+    int size = 100000;
+    // max stack size is 8192
+    char buffer[7000];
     char* ptr = buffer;
+
     for(int i = 0; i < size; i++){
 
         int length = lengthDist(gen);
@@ -42,29 +44,15 @@ int main(){
         encode(input, ptr);
         UserRequest output = decode(ptr);
 
-        length = input.getLength();
-        cout <<" Length of User Input: " << length << endl;
-
-        for(int i = 0; i < length; i++){
-            cout <<  std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(static_cast<unsigned char>(ptr[i])) << " ";
-        }
-
-        cout << std::dec << endl;
-
-
-        cout << "Input: " << i << endl <<
-        endl << input.getKey().Print() << endl << endl
-         << input.getValue().Print() << endl << endl
-          << static_cast<unsigned int>(input.getType()) << endl << endl
-           << input.getSequenceNumber() << endl << endl << "-----------------------------------" << endl;
-
-        cout << output.getKey().Print() << endl;
-        cout << output.getKey().getSize() << endl;
+        // when the size is 128 we get 0?
+        //cout << input.getKey().getSize() << " vs " << output.getKey().getSize() << endl;
+        //cout << input.getValue().getSize() << " vs " << output.getValue().getSize() << endl;
 
         assert(input.getKey() == output.getKey());
         assert(input.getValue() == output.getValue());
         assert(input.getType() == output.getType());
         assert(input.getSequenceNumber() == output.getSequenceNumber());
+
 
     }
 
@@ -76,6 +64,11 @@ int main(){
 }
 
 /*
+
+        for(int i = 0; i < length; i++){
+            cout <<  std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned int>(static_cast<unsigned char>(ptr[i])) << " ";
+        }
+
  size_t length = input.getLength();
     cout <<" Length of User Input: " << length << endl;
 

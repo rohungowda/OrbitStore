@@ -14,8 +14,6 @@
 
 
 namespace Orbit{
-    
-    // TODO - Testing + Assertion + Helper functions
 
     static int CHARBYTESIZE = 128;
     static int BYTESIZE = 0x80;
@@ -65,7 +63,7 @@ namespace Orbit{
 
 
         private:
-            // data is immutable once assigned
+            // data is immutable once assigned but pointer can change where it points to
             const char* data_;
             size_t size;
     };
@@ -98,7 +96,7 @@ namespace Orbit{
     // how many bytes it takes to store a size variable while using the continuation bit encoding
     int LengthCalculate(size_t size){
         int bytes = 1;
-        while(size > CHARBYTESIZE){
+        while(size >= CHARBYTESIZE){
             size >>= 7;
             bytes += 1;
         }
@@ -174,7 +172,7 @@ namespace Orbit{
         dest = createLengthEncoding(dest, req.getKey());
         
         // type encoding
-        *(dest++) = static_cast<char>(req.getType());
+        *(dest++) = static_cast<char>(req.getType()); // max value is 255 -> make sure to put it cast it back to unsigned char
 
         // seqeuence encoding
         uint64_t copy = req.getSequenceNumber();
@@ -192,11 +190,20 @@ namespace Orbit{
         int bit = 1;
         int keySize = 0;
 
+        // int can only take up to 4 bytes
+
+        int i = 0;
+        int move = 0;
+
         while(bit){
             bit = (*ptr) & BYTESIZE;
-            // computer sees them as induvidual bytes not a multibyte number
-            keySize += ((*ptr++) & ByteMask);
-        }
+
+            keySize |= ((*(ptr++) & ByteMask) << (move));
+            i += 1;
+            move = ((8 * (i)) - 1);
+
+        }   
+
 
         Slice key(ptr, keySize);
         ptr+= keySize;
@@ -206,16 +213,20 @@ namespace Orbit{
 
         uint64_t sequenceNumber = 0;
 
-        std::memcpy(&sequenceNumber, ptr, sizeof(uint64_t));
+        std::memcpy(&sequenceNumber, ptr, sizeof(uint64_t)); // 8 bytes
         ptr += 8;
 
-
+        i = 0;
         bit = 1;
+        move = 0;
         int valueSize = 0;
 
         while(bit){
             bit = (*ptr) & BYTESIZE;
-            valueSize += ((*ptr++) & ByteMask);
+
+            valueSize |= ((*(ptr++) & ByteMask) << (move));
+            i += 1;
+            move = ((8 * (i)) - 1);
         }
 
         Slice value(ptr, valueSize);
@@ -232,6 +243,13 @@ namespace Orbit{
 #endif
 
 /*
+
+for (int j = bits - 1; j >= 0; --j) {
+    printf("%d", (keySize >> j) & 1);
+    if (j % 8 == 0) printf(" "); // add space every byte
+}
+
+printf("\n");
 
  for(int i = 0; i < 8; i++){
             *(dest++) = copy & 0xFF;
