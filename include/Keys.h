@@ -6,7 +6,12 @@
 #include <cstring>
 #include <cassert>
 
+
+
 #include <iostream>
+#include <iomanip> 
+
+
 
 namespace Orbit{
     
@@ -53,7 +58,11 @@ namespace Orbit{
 
             std::string Print() const {return std::string(data_,size); }
 
-            // comparator
+            // checks if the this slice starts with Slice x
+            bool starts_with(const Slice &x){
+                return (((size >= x.getSize())) && (memcmp(data_, x.getDataPtr(), x.getSize()) == 0));
+            }
+
 
         private:
             // data is immutable once assigned
@@ -67,17 +76,14 @@ namespace Orbit{
     }
 
     bool operator!=(const Slice& x, const Slice& y){
-        return !((x.getSize() == y.getSize()) && (std::memcmp(x.getDataPtr(), y.getDataPtr(), x.getSize()) == 0));
+        return !(x == y);
     }
 
     // 0 if equal
     // > 0 if x > y
     // < 0 if x < y
-    // note smaller values should be sorted first and punctuation should come first
     int CompareSlices(const Slice& x, const Slice& y){
         const size_t size = std::min(x.getSize(), y.getSize());
-
-        // there is something going on here where one of the size and pointers are not being copied properly?
         
         int compared = std::memcmp(x.getDataPtr(), y.getDataPtr(), size);
 
@@ -114,9 +120,11 @@ namespace Orbit{
 
         // this is for size_t which is always positive
         // size -> extract all relevant
+        // Little Endian = LSB .... MSB
         while(keyByteSize > 0){
-            *(reader++) = (keyByteSize & ByteMask) | BYTESIZE;
-            keyByteSize >>= 7;
+            *(reader++) = (actualDataSize & ByteMask) | BYTESIZE;
+            actualDataSize >>= 7;
+            keyByteSize -= 1;
         }
 
         // sets the MSB or continution bit to 0
@@ -127,6 +135,7 @@ namespace Orbit{
         // copy all data fromt eh value to the location identified
         std::memcpy(reader, value.getDataPtr(), value.getSize());
 
+        // not really needed but I think its good
         reader += value.getSize();
 
         return reader;
@@ -134,7 +143,7 @@ namespace Orbit{
     }
 
 
-
+    // make the sequence number an atomic global variable acessible by all threads so that each request will have a monotically incrasing sequence number
     class UserRequest{
         public:
             UserRequest(Slice key, Slice value, uint8_t type, uint64_t sequenceNumber)
@@ -142,7 +151,7 @@ namespace Orbit{
 
 
             size_t getLength(){
-                // keyLength + actual key + SequenceNumber + type + valueLength + value
+                // keyLength + actual key + SequenceNumber + type + valueLength + value -> for this intial draft I am just going to include a byte but will change so can save space
                 return (LengthCalculate(key_.getSize()) + key_.getSize() + sizeof(uint8_t) + sizeof(uint64_t) + LengthCalculate(value_.getSize()) + value_.getSize());
             }
 
@@ -170,16 +179,50 @@ namespace Orbit{
         // seqeuence encoding
         uint64_t copy = req.getSequenceNumber();
 
-        // want it to be 8 bytes exactly
-        for(int i = 0; i < 8; i++){
-            *(dest++) = copy & 0xFF;
-            copy >>= 8;
-        }
-
+        // strore number as little endian so that when it gets copied back to a uint_64_t number it automatically recognized the bytes in little endian and normally uses them
+        std::memcpy(dest, &copy, sizeof(uint64_t));
+        dest += 8;
+       
         // value encoding
         dest = createLengthEncoding(dest, req.getValue());
 
-        // need a check here to make sure everything works -> like an assert
+    }
+
+    UserRequest decode(char* ptr){
+        int bit = 1;
+        int keySize = 0;
+
+        while(bit){
+            bit = (*ptr) & BYTESIZE;
+            // computer sees them as induvidual bytes not a multibyte number
+            keySize += ((*ptr++) & ByteMask);
+        }
+
+        Slice key(ptr, keySize);
+        ptr+= keySize;
+    
+
+        uint8_t type = static_cast<unsigned char>(*(ptr++));
+
+        uint64_t sequenceNumber = 0;
+
+        std::memcpy(&sequenceNumber, ptr, sizeof(uint64_t));
+        ptr += 8;
+
+
+        bit = 1;
+        int valueSize = 0;
+
+        while(bit){
+            bit = (*ptr) & BYTESIZE;
+            valueSize += ((*ptr++) & ByteMask);
+        }
+
+        Slice value(ptr, valueSize);
+        ptr+= valueSize;
+
+
+        return UserRequest(key,value,type,sequenceNumber);
 
     }
 
@@ -187,3 +230,21 @@ namespace Orbit{
 }
 
 #endif
+
+/*
+
+ for(int i = 0; i < 8; i++){
+            *(dest++) = copy & 0xFF;
+            copy >>= 8;
+        }
+
+
+        for(int i = 0; i < 7; i++){
+            std::cout << sequenceNumber << std::endl;
+            // &ptr automatically gets cast to an int -> allows for the number to be correcly represented
+            sequenceNumber |= static_cast<unsigned char>(*(ptr++));
+            sequenceNumber <<= 8;
+        }
+
+        sequenceNumber |= static_cast<unsigned char>(*(ptr++));
+*/
