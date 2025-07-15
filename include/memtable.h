@@ -5,21 +5,14 @@
 #include "arena.h"
 
 // have the key as a hash converted and serialzied, right now think about it as simple key and values
-class InternalComparator;
-
-class MemIterator;
 
 namespace Orbit{
 
 
-    class InternalComparator{
-        // Should a come after b?
-        bool operator()(Slice &a, Slice &b);
-    };
 
-    class memtable{
+    class MemTable{
         public:
-            memtable();
+            MemTable();
             //memtable(uint64_t startSequenceNumber, Arena * allocate);
 
             /*
@@ -32,20 +25,20 @@ namespace Orbit{
             {Need to figure out how to transfer ownership -> first to the distribrutor then to any threads that were set with the old one }
 
             */
-            ~memtable();
+            ~MemTable();
 
-            void GET(UserRequest req);
+            UserRequest GET(UserRequest req);
             void PUT(UserRequest req);
-            void DELETE(UserRequest req);
 
             size_t getMemorySize() {return allocater.getMemorySize();}
         
+
         private:
             Arena allocater;
             //static atomic<uint64_t> sequenceNumber; // Keep it in the manager thread which directs everything
-            vector<char*> DataStructure;
+            vector<char*> TempDataStructure;
             const size_t limit = 8192; // 1024 * 8, so memtable should have enough data for 8 pages of arene memory for now
-            mutex mtx; // rememer right now we are doign monolithic locking, changing to either fine grained lockign or even better wait-free locking
+            mutex MemTable_mtx; // rememer right now we are doign monolithic locking, changing to either fine grained lockign or even better wait-free locking
 
     };
 
