@@ -10,6 +10,7 @@
 #include <iostream>
 using namespace std;
 
+// Arena Class will have a quote on quote parent that controls access, so no need for mutexes in arena
 namespace Orbit{
     class Arena{
         public:
@@ -23,18 +24,6 @@ namespace Orbit{
             // get memory size
             size_t getMemorySize();
 
-            // prints out information on the Linked List
-            void print(){
-                const Node* root = freespace.getRoot();
-                
-
-                while(root != nullptr){
-                    cout  << root->dataSize << " -> ";
-                    root = root->next;
-                }
-                cout <<  " NULL" << endl;
-                cout <<"Number of Unused Bytes: " << freespace.counter << endl;
-            }
 
         private:
 
@@ -42,20 +31,16 @@ namespace Orbit{
             char* ptr;
             size_t bytesRemain;
 
-            // Block holder array ( Could use Linked List )
+            // Block holder array ( Could use Linked List ) - better to use linked list
             std::vector<char*> blockHolder;
 
             // totalSize
             std::atomic<size_t> totalSize;
             
-            // mutex for block
-            std::mutex mtx;
             const size_t BLOCKSIZE = 1024;
             
-            // captures freespace that can be used instead of just the block **Might need to handle multithreading?
-            LinkedList freespace;
-
-            // allocates a large memory block of BlockSize
+            
+            // allocates a large memory block of BlockSize  and returns a pointer
             char * AllocateBlock(size_t size);
 
             // TODO Implement
